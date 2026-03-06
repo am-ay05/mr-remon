@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة تحكم AMG - WhatsApp Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #06467A; --bg: #dadbd3; --student-msg: #ffffff; --admin-msg: #dcf8c6; --delete: #e74c3c; }
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg); height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+        /* الواجهة الرئيسية */
+        #admin-panel { 
+            display: none; 
+            width: 100%; 
+            height: 100vh; 
+            background: #fff; 
+            flex-direction: row-reverse; 
+            position: relative;
+        }
+        
+        /* القائمة الجانبية (يسار في الشاشات الكبيرة) */
+        .sidebar { 
+            width: 30%; 
+            min-width: 320px; 
+            border-right: 1px solid #ddd; 
+            display: flex; 
+            flex-direction: column; 
+            background: #fff; 
+            height: 100%;
+        }
+        .sidebar-header { 
+            padding: 15px; 
+            background: #f0f2f5; 
+            border-bottom: 1px solid #ddd; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-weight: bold; 
+        }
+        #server-selector-container { padding: 12px; background: var(--primary); color: #fff; }
+        select { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; outline: none;}
+
+        .chat-list { 
+            flex: 1; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+        }
+        .chat-item { display: flex; align-items: center; padding: 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; }
+        .chat-item:hover { background: #f5f6f6; }
+        .avatar { width: 48px; height: 48px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-left: 15px; font-weight: bold; flex-shrink: 0;}
+
+        /* منطقة المحادثة */
+        .main-chat { flex: 1; display: flex; flex-direction: column; background: #e5ddd5; border-left: 1px solid #ddd; height: 100%; }
+        .chat-header { padding: 12px 20px; background: #f0f2f5; display: flex; align-items: center; border-bottom: 1px solid #ddd; }
+        
+        #messages-container { 
+            flex: 1; 
+            padding: 25px; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+            display: flex; 
+            flex-direction: column; 
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); 
+        }
+        
+        .message-wrapper { display: flex; align-items: center; margin-bottom: 10px; width: 100%; }
+        .message { max-width: 65%; padding: 10px 15px; border-radius: 12px; font-size: 15px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-student { align-self: flex-start; background: #ffffff; border-top-right-radius: 2px; text-align: right; }
+        .msg-admin { align-self: flex-end; background: #dcf8c6; border-top-left-radius: 2px; text-align: right; }
+        
+        .delete-btn-icon { color: var(--delete); cursor: pointer; margin: 0 12px; opacity: 0.1; transition: 0.2s; font-size: 15px; }
+        .message-wrapper:hover .delete-btn-icon { opacity: 1; }
+
+        .msg-time { font-size: 10px; color: #888; margin-top: 5px; text-align: left; direction: ltr; display: inline-block; float: left; }
+        .msg-img { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; }
+
+        .input-area { padding: 10px 15px; background: #f0f2f5; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; }
+        #message-input { flex: 1; padding: 12px 18px; border-radius: 25px; border: none; outline: none; }
+        .send-btn { background: var(--primary); color: #fff; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; flex-shrink: 0;}
+        
+        /* زر العودة للموبايل */
+        .back-btn { display: none; margin-left: 15px; font-size: 20px; cursor: pointer; color: #54656f; padding: 5px; }
+
+        /* تعديلات الهاتف */
+        @media (max-width: 768px) {
+            #admin-panel { display: block; }
+            
+            .sidebar { 
+                width: 100%; 
+                position: absolute; 
+                z-index: 10; 
+                top: 0;
+                right: 0;
+                transition: transform 0.3s ease-in-out; 
+            }
+            
+            .sidebar.hidden { transform: translateX(100%); } 
+
+            .main-chat { width: 100%; position: absolute; top: 0; right: 0; z-index: 5; }
+            
+            .back-btn { display: block; } 
+            
+            #messages-container { padding: 15px; }
+            .message { max-width: 85%; }
+            .delete-btn-icon { opacity: 1; font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="admin-panel">
+        
+        <div class="sidebar" id="sidebar">
+            <div id="server-selector-container">
+                <select id="server-select" onchange="filterChatsByServer()"></select>
+            </div>
+            <div class="sidebar-header">
+                <span>المحادثات</span>
+                </div>
+            <div class="chat-list" id="chat-list"></div>
+        </div>
+
+        <div class="main-chat">
+            <div class="chat-header" id="chat-header" style="display: none;">
+                <i class="fas fa-arrow-right back-btn" onclick="toggleSidebar(true)" title="رجوع للقائمة"></i>
+                
+                <div class="avatar" id="active-avatar">?</div>
+                <div style="margin-right: 15px; flex: 1;">
+                    <div id="active-name" style="font-weight: bold; color: #111;"></div>
+                    <div id="active-phone" style="font-size: 12px; color: #27ae60; font-weight: bold;"></div>
+                </div>
+                <i class="fas fa-trash-alt" style="color:var(--delete); cursor:pointer; font-size: 18px; padding: 5px;" onclick="deleteFullChat()" title="مسح الشات بالكامل"></i>
+            </div>
+
+            <div id="messages-container">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #777; text-align: center;">
+                    <i class="fab fa-whatsapp" style="font-size: 80px; color: #ccc; margin-bottom: 20px;"></i>
+                    <h2>AMG Web Support</h2>
+                    <p>اختر طالباً من القائمة للبدء</p>
+                </div>
+            </div>
+
+            <div class="input-area" id="input-area" style="display: none;">
+                <input type="text" id="message-input" placeholder="اكتب ردك هنا...">
+                <button class="send-btn" onclick="sendReply()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+    apiKey: 'AIzaSyDlY3cXLhUTA90hm4W-ciYXFgNGGt5lLf0',
+    appId: '1:416921782729:web:b6ef2937c0f21c36930018',
+    messagingSenderId: '416921782729',
+    projectId: 'remon-c7d79',
+    authDomain: 'remon-c7d79.firebaseapp.com',
+    databaseURL: 'https://remon-c7d79-default-rtdb.firebaseio.com',
+    storageBucket: 'remon-c7d79.firebasestorage.app',
+    measurementId: 'G-CPXH58TKN3',
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        let selectedServer = "";
+        let currentChatPath = "";
+        let currentStudentName = "";
+
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                checkPermissions(user.uid);
+            }
+        });
+
+        async function checkPermissions(uid) {
+            const adminSnap = await db.ref(`admins/${uid}`).get();
+            if (adminSnap.exists()) {
+                loadServers();
+                document.getElementById('admin-panel').style.display = 'flex';
+            } else {
+                const teaSnap = await db.ref(`tea/${uid}`).get();
+                if (teaSnap.exists()) {
+                    initPanel(teaSnap.val().split('.'));
+                    document.getElementById('admin-panel').style.display = 'flex';
+                } else { 
+                    auth.signOut().then(() => window.location.href = 'index.html');
+                }
+            }
+        }
+
+        function loadServers() {
+            db.ref('support_chats').on('value', snap => initPanel(Object.keys(snap.val() || {})));
+        }
+
+        function initPanel(servers) {
+            const select = document.getElementById('server-select');
+            select.innerHTML = servers.map(s => `<option value="${s}">${s}</option>`).join('');
+            if (!selectedServer) { selectedServer = servers[0]; fetchChats(); }
+        }
+
+        function filterChatsByServer() {
+            selectedServer = document.getElementById('server-select').value;
+            fetchChats();
+        }
+
+        function fetchChats() {
+            db.ref(`support_chats/${selectedServer}`).on('value', snap => {
+                const listDiv = document.getElementById('chat-list');
+                listDiv.innerHTML = '';
+                const students = snap.val();
+                if (students) {
+                    for (let name in students) {
+                        const item = document.createElement('div');
+                        item.className = 'chat-item';
+                        item.onclick = () => openChat(selectedServer, name);
+                        item.innerHTML = `<div class="avatar">${name[0]}</div><div><b style="color:#111">${name}</b><div style="font-size:12px;color:#667781">${selectedServer}</div></div>`;
+                        listDiv.appendChild(item);
+                    }
+                }
+            });
+        }
+
+        function formatTime12Hour(timestamp) {
+            const date = new Date(timestamp);
+            let hours = date.getHours();
+            let minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'م' : 'ص';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        function openChat(server, student) {
+            currentChatPath = `support_chats/${server}/${student}`;
+            currentStudentName = student;
+            document.getElementById('chat-header').style.display = 'flex';
+            document.getElementById('input-area').style.display = 'flex';
+            document.getElementById('active-name').innerText = student;
+            document.getElementById('active-avatar').innerText = student[0];
+            
+            db.ref('users').orderByChild('fullName').equalTo(student).once('value', snap => {
+                if (snap.exists()) {
+                    const u = Object.values(snap.val())[0];
+                    document.getElementById('active-phone').innerText = u.phoneNumber || "";
+                }
+            });
+
+            toggleSidebar(false);
+
+            db.ref(currentChatPath).orderByChild('timestamp').on('value', snap => {
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '';
+                const msgs = snap.val();
+                if (msgs) {
+                    Object.keys(msgs).forEach(key => {
+                        const m = msgs[key];
+                        const wrapper = document.createElement('div');
+                        wrapper.className = "message-wrapper";
+                        wrapper.style.flexDirection = m.isFromAdmin ? "row-reverse" : "row";
+
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = `message ${m.isFromAdmin ? 'msg-admin' : 'msg-student'}`;
+                        let content = m.text ? `<div style="margin-bottom: 2px;">${m.text}</div>` : '';
+                        if (m.imageUrl) content += `<img src="${m.imageUrl}" class="msg-img" onclick="window.open('${m.imageUrl}')">`;
+                        
+                        const formattedTime = formatTime12Hour(m.timestamp);
+                        msgDiv.innerHTML = `${content}<div class="msg-time">${formattedTime}</div><div style="clear:both;"></div>`;
+
+                        const delBtn = document.createElement('i');
+                        delBtn.className = "fas fa-trash-alt delete-btn-icon";
+                        delBtn.onclick = (e) => { e.stopPropagation(); deleteMessage(key); };
+
+                        wrapper.appendChild(msgDiv);
+                        wrapper.appendChild(delBtn);
+                        container.appendChild(wrapper);
+                    });
+                    container.scrollTop = container.scrollHeight;
+                }
+            });
+        }
+
+        async function deleteMessage(msgId) {
+            if (confirm("حذف الرسالة نهائياً؟")) {
+                db.ref(`${currentChatPath}/${msgId}`).remove();
+            }
+        }
+
+        async function deleteFullChat() {
+            if (confirm(`مسح المحادثة مع ${currentStudentName}؟`)) {
+                db.ref(currentChatPath).remove();
+                document.getElementById('messages-container').innerHTML = '';
+                document.getElementById('chat-header').style.display = 'none';
+                document.getElementById('input-area').style.display = 'none';
+                
+                toggleSidebar(true);
+            }
+        }
+
+        function sendReply() {
+            const input = document.getElementById('message-input');
+            if (!input.value.trim() || !currentChatPath) return;
+            db.ref(currentChatPath).push().set({
+                senderId: "ADMIN",
+                text: input.value.trim(),
+                timestamp: Date.now(),
+                isFromAdmin: true
+            });
+            input.value = '';
+            input.focus();
+        }
+
+        document.getElementById('message-input').addEventListener('keypress', e => { if(e.key==='Enter') sendReply(); });
+
+        function toggleSidebar(show) {
+            const sb = document.getElementById('sidebar');
+            if (show) {
+                sb.classList.remove('hidden'); 
+            } else {
+                sb.classList.add('hidden'); 
+            }
+        }
+    </script>
+</body>
+</html>

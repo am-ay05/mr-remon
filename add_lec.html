@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المحاضرات - لوحة التحكم</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --primary-hover: #4338ca;
+            --secondary-color: #818cf8;
+            --background-color: #F3F4F6;
+            --surface-color: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --success-color: #10B981;
+            --danger-color: #EF4444;
+            --danger-hover: #DC2626;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #818cf8;
+            --secondary-color: #4f46e5;
+            --background-color: #111827;
+            --surface-color: #1F2937;
+            --text-primary: #F9FAFB;
+            --text-secondary: #D1D5DB;
+            --border-color: #374151;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+
+        .back-btn-top {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            background: var(--surface-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .back-btn-top:hover {
+            color: var(--primary-color);
+            transform: translateX(-5px);
+        }
+
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border-color);
+        }
+
+        /* Container */
+        .container {
+            width: 95%;
+            max-width: 800px;
+            background-color: var(--surface-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            padding: 0;
+            margin-bottom: 40px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .appbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .appbar h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        
+        .appbar p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content-body {
+            padding: 30px;
+        }
+
+        h3 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-right: 4px solid var(--primary-color);
+            padding-right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .full-width {
+                grid-column: span 2;
+            }
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            background-color: var(--surface-color);
+        }
+
+        /* Buttons */
+        .button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .button:hover::after {
+            opacity: 1;
+        }
+
+        .upload-btn {
+            background-color: var(--success-color);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .upload-btn:hover { background-color: #059669; transform: translateY(-2px); }
+        .upload-btn:active { transform: translateY(0); }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        .delete-btn:hover { background-color: var(--danger-hover); transform: translateY(-2px); }
+
+        .divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 5000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            margin: 10% auto;
+            padding: 0;
+            border: 1px solid var(--border-color);
+            width: 90%;
+            max-width: 600px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--background-color);
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .close {
+            color: var(--text-secondary);
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close:hover { color: var(--danger-color); }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-body ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .delete-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        
+        .delete-list-item:hover {
+            background-color: var(--background-color);
+        }
+
+        .delete-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .delete-list-item span {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .btn-sm-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-sm-danger:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--background-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <a href="activation_stats.html" class="back-btn-top">
+            <i class="fas fa-arrow-right"></i>
+            <span>الرئيسية</span>
+        </a>
+        <button class="theme-toggle" id="themeToggle" title="تبديل الوضع">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <div id="page-content" style="display: none; width: 100%; display:flex; justify-content:center;">
+        <div class="container">
+            <div class="appbar">
+                <h1>إدارة المحاضرات</h1>
+                <p>إضافة وحذف وتنظيم المحاضرات الدراسية</p>
+            </div>
+            
+            <div class="content-body">
+                <h3><i class="fas fa-cloud-upload-alt"></i> إضافة محاضرة جديدة</h3>
+                
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="lectureNumber">رقم المحاضرة</label>
+                        <input type="number" id="lectureNumber" placeholder="مثال: 1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="title">عنوان المحاضرة</label>
+                        <input type="text" id="title" placeholder="مثال: مقدمة في الفيزياء">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="year">السنة الدراسية / المدرس</label>
+                        <select id="year"></select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="month">الشهر الدراسي</label>
+                        <select id="month">
+                            <option value="_uncategorized_" selected>غير مصنف (حفظ مباشر)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>رابط الفيديو</label>
+                        <input type="url" id="videoUrl" placeholder="رابط يوتيوب أو مسار خارجي للفيديو" required>
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>شعار المحاضرة (اختياري)</label>
+                        <input type="url" id="logoUrl" placeholder="رابط صورة غلاف للمحاضرة">
+                    </div>
+                </div>
+
+                <button id="uploadButton" class="button upload-btn">
+                    <i class="fas fa-save"></i>
+                    <span id="uploadText">حفظ المحاضرة</span>
+                </button>
+                
+                <div class="divider"></div>
+                
+                <h3><i class="fas fa-trash-alt"></i> حذف المحاضرات</h3>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="deleteYear">السنة الدراسية / المدرس</label>
+                        <select id="deleteYear"></select>
+                    </div>
+                    <div class="input-group">
+                        <label for="deleteMonth">الشهر الدراسي</label>
+                        <select id="deleteMonth">
+                            <option value="_uncategorized_" selected>غير مصنف</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="showDeleteButton" class="button delete-btn">
+                    <i class="fas fa-list-ul"></i>
+                    عرض المحاضرات للحذف
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle" style="color:var(--danger-color);"></i> حذف محاضرة</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <ul id="lecturesList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database-compat.js"></script>
+
+    <script>
+        // Dark Mode Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const icon = themeToggle.querySelector('i');
+        
+        // Check local storage
+        if(localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        });
+
+        // Firebase Configuration
+        const firebaseConfig = {
+    apiKey: 'AIzaSyDlY3cXLhUTA90hm4W-ciYXFgNGGt5lLf0',
+    appId: '1:416921782729:web:b6ef2937c0f21c36930018',
+    messagingSenderId: '416921782729',
+    projectId: 'remon-c7d79',
+    authDomain: 'remon-c7d79.firebaseapp.com',
+    databaseURL: 'https://remon-c7d79-default-rtdb.firebaseio.com',
+    storageBucket: 'remon-c7d79.firebasestorage.app',
+    measurementId: 'G-CPXH58TKN3',
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        let teacherList = [];
+
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                try {
+                    const adminSnap = await database.ref(`admins/${user.uid}`).once('value');
+                    const teacherSnap = await database.ref(`tea/${user.uid}`).once('value');
+
+                    if (adminSnap.exists()) {
+                        teacherList = [];
+                        for(let i=1; i<=25; i++) teacherList.push(`مدرس ${i}`);
+                        document.getElementById('page-content').style.display = 'flex';
+                        initializeAppLogic();
+                    } else if (teacherSnap.exists()) {
+                        const val = teacherSnap.val();
+                        teacherList = val.split('.').map(t => t.trim());
+                        document.getElementById('page-content').style.display = 'flex';
+                        initializeAppLogic();
+                    } else {
+                        alert('ليس لديك صلاحيات الوصول لهذه الصفحة.');
+                        auth.signOut();
+                        window.location.href = 'index.html';
+                    }
+                } catch(e) {
+                    console.error(e);
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        function initializeAppLogic() {
+            function getDbPath(year, month = '_uncategorized_', lectureId = null) {
+                let path = `lectures/${year}`;
+                if (month && month !== '_uncategorized_') {
+                    path += `/${month}`;
+                }
+                if (lectureId) {
+                    path += `/${lectureId}`;
+                }
+                return path;
+            }
+            
+            async function loadMonthsForSelect(selectElement, year) {
+                selectElement.innerHTML = '<option value="_uncategorized_" selected>غير مصنف (تحت السنة مباشرة)</option>';
+                try {
+                    const snapshot = await database.ref(`months/${year}`).once('value');
+                    if (snapshot.exists()) {
+                        const months = snapshot.val();
+                        const monthsArray = Object.entries(months).map(([key, value]) => ({ id: key, ...value }));
+                        monthsArray.sort((a, b) => (a.order || 999) - (b.order || 999));
+                        monthsArray.forEach(month => {
+                            const option = document.createElement('option');
+                            option.value = month.id;
+                            option.textContent = month.name;
+                            selectElement.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error loading months:", error);
+                }
+            }
+
+            const titleInput = document.getElementById('title');
+            const lectureNumberInput = document.getElementById('lectureNumber');
+            const yearSelect = document.getElementById('year');
+            const monthSelect = document.getElementById('month');
+            const videoUrlInput = document.getElementById('videoUrl');
+            const logoUrlInput = document.getElementById('logoUrl');
+            const uploadButton = document.getElementById('uploadButton');
+            const uploadText = document.getElementById('uploadText');
+            
+            const deleteYearSelect = document.getElementById('deleteYear');
+            const deleteMonthSelect = document.getElementById('deleteMonth'); 
+            const showDeleteButton = document.getElementById('showDeleteButton');
+            const deleteModal = document.getElementById('deleteModal');
+            const closeModal = document.querySelector('#deleteModal .close');
+            const lecturesList = document.getElementById('lecturesList');
+
+            // Populate Selects
+            yearSelect.innerHTML = '';
+            deleteYearSelect.innerHTML = '';
+
+            teacherList.forEach(teacherName => {
+                const opt1 = document.createElement('option');
+                opt1.value = teacherName;
+                opt1.textContent = teacherName;
+                yearSelect.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = teacherName;
+                opt2.textContent = teacherName;
+                deleteYearSelect.appendChild(opt2);
+            });
+
+            const savedTeacher = localStorage.getItem('selectedTeacher');
+            if(savedTeacher && teacherList.includes(savedTeacher)) {
+                yearSelect.value = savedTeacher;
+                deleteYearSelect.value = savedTeacher;
+            }
+            
+            loadMonthsForSelect(monthSelect, yearSelect.value);
+            loadMonthsForSelect(deleteMonthSelect, deleteYearSelect.value);
+
+            yearSelect.addEventListener('change', () => loadMonthsForSelect(monthSelect, yearSelect.value));
+            deleteYearSelect.addEventListener('change', () => loadMonthsForSelect(deleteMonthSelect, deleteYearSelect.value));
+
+            // --- Save Logic ---
+            uploadButton.addEventListener('click', async () => {
+                const title = titleInput.value.trim();
+                const lectureNumber = lectureNumberInput.value.trim();
+                const selectedYear = yearSelect.value;
+                const selectedMonth = monthSelect.value;
+                const videoUrl = videoUrlInput.value.trim();
+                const logoUrl = logoUrlInput.value.trim();
+
+                if (!title || !lectureNumber || !videoUrl) {
+                    alert('يرجى إدخال جميع البيانات المطلوبة ورابط الفيديو');
+                    return;
+                }
+
+                uploadText.textContent = 'جاري الحفظ...';
+                uploadButton.disabled = true;
+                
+                try {
+                    const lectureId = Date.now().toString();
+                    const dbPath = getDbPath(selectedYear, selectedMonth, lectureId);
+
+                    await database.ref(dbPath).set({
+                        id: lectureId,
+                        title: title,
+                        lectureNumber: lectureNumber,
+                        year: selectedYear,
+                        month: selectedMonth, 
+                        videoPath: videoUrl,
+                        logoPath: logoUrl,  
+                        timestamp: Date.now()
+                    });
+
+                    alert('تم إضافة المحاضرة بنجاح!');
+                    
+                    // Reset Form
+                    titleInput.value = '';
+                    lectureNumberInput.value = '';
+                    videoUrlInput.value = '';
+                    logoUrlInput.value = '';
+                    loadMonthsForSelect(deleteMonthSelect, deleteYearSelect.value);
+
+                } catch (error) {
+                    console.error('Failed to save data', error);
+                    alert(`حدث خطأ أثناء الحفظ: ${error.message}`);
+                } finally {
+                    uploadText.textContent = 'حفظ المحاضرة';
+                    uploadButton.disabled = false;
+                }
+            });
+
+            // --- Delete Logic ---
+            showDeleteButton.addEventListener('click', async () => {
+                const selectedYear = deleteYearSelect.value;
+                const selectedMonth = deleteMonthSelect.value;
+                lecturesList.innerHTML = '<li style="text-align:center; padding:20px;">جاري التحميل...</li>';
+                deleteModal.style.display = 'block';
+
+                try {
+                    const dbPath = getDbPath(selectedYear, selectedMonth);
+                    const snapshot = await database.ref(dbPath).once('value');
+                    lecturesList.innerHTML = ''; 
+
+                    if (snapshot.exists()) {
+                        const lecturesData = snapshot.val();
+                        let lectures = {};
+                        if (selectedMonth === '_uncategorized_') {
+                            Object.keys(lecturesData).forEach(key => {
+                                if (lecturesData[key] && lecturesData[key].title) {
+                                    lectures[key] = lecturesData[key];
+                                }
+                            });
+                        } else {
+                            lectures = lecturesData;
+                        }
+                        const lectureKeys = Object.keys(lectures).filter(key => lectures[key] && lectures[key].title);
+
+                        if (lectureKeys.length > 0) {
+                            lectureKeys.forEach(lectureId => {
+                                const lecture = lectures[lectureId];
+                                const li = document.createElement('li');
+                                li.className = 'delete-list-item';
+                                li.innerHTML = `
+                                    <div style="display:flex; flex-direction:column;">
+                                        <span style="font-weight:bold; color:var(--text-primary);">${lecture.title}</span>
+                                        <span style="font-size:0.85em; color:var(--text-secondary);">محاضرة رقم: ${lecture.lectureNumber}</span>
+                                    </div>
+                                    <button class="btn-sm-danger" onclick="deleteLecture('${selectedYear}', '${lectureId}', '${selectedMonth}')">
+                                        <i class="fas fa-trash"></i> حذف
+                                    </button>
+                                `;
+                                lecturesList.appendChild(li);
+                            });
+                        } else {
+                            lecturesList.innerHTML = '<li style="text-align:center; padding:20px;">لا توجد محاضرات في هذا التصنيف.</li>';
+                        }
+                    } else {
+                        lecturesList.innerHTML = '<li style="text-align:center; padding:20px;">لا توجد محاضرات في هذا التصنيف.</li>';
+                    }
+                } catch (error) {
+                    console.error("Error fetching lectures:", error);
+                    lecturesList.innerHTML = '<li style="text-align:center; color:red; padding:20px;">حدث خطأ أثناء جلب البيانات.</li>';
+                }
+            });
+
+            closeModal.onclick = function() { deleteModal.style.display = 'none'; }
+            window.onclick = function(event) { if (event.target == deleteModal) deleteModal.style.display = 'none'; }
+
+            window.deleteLecture = async function(year, lectureId, month) {
+                if (!window.confirm('هل أنت متأكد تماماً من حذف هذه المحاضرة؟ لا يمكن استرجاعها.')) return;
+
+                try {
+                    const dbPath = getDbPath(year, month, lectureId);
+                    await database.ref(dbPath).remove();
+
+                    // Refresh List
+                    const li = event.target.closest('li');
+                    if(li) li.remove();
+                    
+                    alert('تم الحذف بنجاح');
+                    if(lecturesList.children.length === 0) {
+                        deleteModal.style.display = 'none';
+                    }
+
+                } catch (error) {
+                    console.error("Error deleting lecture:", error);
+                    alert("حدث خطأ أثناء الحذف، يرجى مراجعة وحدة التحكم (Console).");
+                }
+            }
+        } 
+    </script>
+</body>
+</html>
