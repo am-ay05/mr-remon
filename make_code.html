@@ -13,7 +13,6 @@
 --dark-color: #2D3436;
 --light-color: #F5F6FA;
 --success-color: #27ae60;
---danger-color: #c0392b;
 }
 * {
 margin: 0;
@@ -108,12 +107,6 @@ gap: 10px;
 background-color: var(--secondary-color);
 cursor: not-allowed;
 }
-.btn-danger {
-background-color: var(--danger-color);
-}
-.btn-danger:hover {
-background-color: #a93226;
-}
 .loading-spinner {
 border: 3px solid rgba(255, 255, 255, 0.3);
 border-top: 3px solid #fff;
@@ -172,18 +165,6 @@ color: #721c24;
 background-color: #d4edda;
 color: #155724;
 }
-.danger-zone {
-margin-top: 40px;
-padding-top: 20px;
-border-top: 2px dashed #ddd;
-text-align: center;
-}
-.danger-title {
-color: var(--danger-color);
-font-size: 18px;
-margin-bottom: 10px;
-font-weight: bold;
-}
 </style>
 </head>
 <body>
@@ -220,14 +201,6 @@ font-weight: bold;
 <h4>تم إنشاء الأكواد بنجاح:</h4>
 <textarea id="generated-codes-display" class="generated-codes" readonly></textarea>
 <button id="copy-btn" class="copy-btn">نسخ جميع الأكواد</button>
-</div>
-
-<div class="danger-zone">
-<h3 class="danger-title">⚠ منطقة الخطر</h3>
-<p style="font-size: 14px; color: #666; margin-bottom: 15px;">احذر: هذا الزر سيقوم بحذف <strong>جميع</strong> الأكواد الموجودة في قاعدة البيانات (المستخدمة وغير المستخدمة).</p>
-<button id="delete-all-btn" class="btn btn-danger">
-<span>حذف جميع الأكواد من قاعدة البيانات</span>
-</button>
 </div>
 
 </div>
@@ -299,7 +272,6 @@ const resultCard = document.getElementById('result-card');
 const codeDisplay = document.getElementById('generated-codes-display');
 const copyBtn = document.getElementById('copy-btn');
 const alertMessageDiv = document.getElementById('alert-message');
-const deleteAllBtn = document.getElementById('delete-all-btn'); // زر الحذف الجديد
 
 // Populate teacher dropdown menu
 for (let i = 1; i <= 4; i++) {
@@ -421,43 +393,10 @@ generateBtn.innerHTML = '<span>إنشاء الأكواد</span>';
 }
 }
 
-// ==========================================================
-// وظيفة حذف جميع الأكواد (الجديدة)
-// ==========================================================
-async function deleteAllCodes() {
-// رسالة تأكيد أولى
-if (!confirm("⚠️ تحذير خطير جداً!\n\nهل أنت متأكد أنك تريد حذف جميع الأكواد من قاعدة البيانات؟\nسيتم حذف الأكواد المستخدمة وغير المستخدمة نهائياً.")) {
-return;
-}
-
-// رسالة تأكيد ثانية للأمان
-if (!confirm("تأكيد نهائي: هذا الإجراء لا يمكن التراجع عنه.\nهل أنت متأكد من الحذف؟")) {
-return;
-}
-
-deleteAllBtn.disabled = true;
-deleteAllBtn.innerHTML = '<span class="loading-spinner"></span><span>جاري الحذف...</span>';
-
-try {
-// حذف النود 'codes' بالكامل
-await codesRef.remove();
-showAlert('تم حذف جميع الأكواد من قاعدة البيانات بنجاح.', 'success');
-// إخفاء كارت النتائج إذا كان ظاهراً
-resultCard.style.display = 'none';
-codeDisplay.value = '';
-} catch (error) {
-console.error("Error deleting codes:", error);
-showAlert('حدث خطأ أثناء محاولة حذف الأكواد.', 'danger');
-} finally {
-deleteAllBtn.disabled = false;
-deleteAllBtn.innerHTML = '<span>حذف جميع الأكواد من قاعدة البيانات</span>';
-}
-}
 
 // Event Listeners
 teacherSelect.addEventListener('change', fetchMonths);
 generateBtn.addEventListener('click', generateAndSaveCodes);
-deleteAllBtn.addEventListener('click', deleteAllCodes); // ربط زر الحذف
 
 copyBtn.addEventListener('click', () => {
 codeDisplay.select();
